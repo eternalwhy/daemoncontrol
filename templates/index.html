@@ -1,0 +1,118 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+
+    <div class="uk-container uk-box-shadow-medium uk-margin-medium-top uk-padding-small"  style="background-color: #f3f7fa; ">
+        <h1 class="uk-text-center">Управление сервисом</h1>
+        <form action="/" method="post">
+            <fieldset class="uk-fieldset">
+                <div class="uk-section uk-section-default uk-margin-small uk-padding-small">
+                    <legend class="uk-legend uk-text-center">Демон sshd </legend>
+                    <span class="uk-label uk-label-success uk-width-5-6 uk-align-center uk-padding-small uk-text-center" id="state">Сервис работает</span>
+                    <div class="uk-margin uk-width-5-6 uk-align-center">
+                        <label><input class="uk-checkbox" type="checkbox" id="enabled" {{'checked' if enabled=='checked' else ''}}> Включить сервис</label>
+                    </div>
+                </div>
+                <div class="uk-section uk-section-default uk-margin-small uk-padding-small" id="btn_section">
+                    <div class="uk-margin uk-padding-small uk-flex uk-flex-between">
+                        <button class="uk-button uk-button-default" name="command" value="start" id="btn_start">Запустить</button>
+                        <button class="uk-button uk-button-default" name="command" value="restart" id="btn_restart">Перезапустить</button>
+                        <button class="uk-button uk-button-danger" name="command" value="stop" id="btn_stop">Остановить</button>                
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        function get_state() {
+            var xhr = new XMLHttpRequest();
+
+            var formData = new FormData();
+            xhr.open('POST', '/status');
+            xhr.send(formData);
+
+            xhr.onreadystatechange = function() {
+                if (this.readyState != 4) return;
+
+                if (xhr.status != 200) {
+                    console.log(xhr.status + ': ' + xhr.statusText);
+                } else {
+                    response = JSON.parse(xhr.responseText);
+
+                    lbl = document.getElementById('state');
+                    if (response.state == 'active') {
+                        UIkit.util.replaceClass(lbl,'uk-label-danger', 'uk-label-success');
+                        lbl.innerHTML = 'Сервис работает';
+                    } else if (response.state == 'dead') {
+                        UIkit.util.replaceClass(lbl, 'uk-label-success', 'uk-label-danger');
+                        lbl.innerHTML = 'Сервис остановлен';
+                    } else {
+                        UIkit.util.addClass(lbl, 'uk-label-warning');
+                        lbl.innerHTML = 'статус неизвестен';
+                    }
+                }
+            };
+        };
+
+
+        function sends(addr, action, value) {
+            var xhr = new XMLHttpRequest();
+
+            var formData = new FormData();
+            formData.append(action, value);
+            xhr.open('POST', addr);
+            xhr.send(formData);
+
+            response = []
+
+            xhr.onreadystatechange = function() {
+                if (this.readyState != 4) return;
+
+                if (xhr.status != 200) {
+                    console.log(xhr.status + ': ' + xhr.statusText);
+                } else {
+                    response = JSON.parse(xhr.responseText);
+                    console.log(response);
+                }
+            };
+        };
+
+
+        UIkit.util.on('#enabled', 'click', function(e) {
+                sends('/actions', 'enabled', e.target.checked);
+                btn_section = document.getElementById('btn_section');
+                if (e.target.checked == false) {
+                    panel_disable();
+                } else {
+                    panel_enable();
+                }
+                
+            });
+
+
+        if (document.getElementById('enabled').checked == true) {
+            panel_enable();
+        } else {
+            panel_disable();
+        };
+
+
+        function panel_enable() {
+            UIkit.util.replaceClass(btn_section,'uk-section-muted', 'uk-section-default');
+            UIkit.util.removeAttr(document.getElementById('btn_start'), 'disabled');
+            UIkit.util.removeAttr(document.getElementById('btn_restart'), 'disabled');
+            UIkit.util.removeAttr(document.getElementById('btn_stop'), 'disabled');
+            timerId = setInterval(get_state, 1000);
+        };
+
+
+        function panel_disable() {
+            UIkit.util.replaceClass(btn_section,'uk-section-default', 'uk-section-muted');
+            UIkit.util.attr(document.getElementById('btn_start'), 'disabled', true);
+            UIkit.util.attr(document.getElementById('btn_restart'), 'disabled', true);
+            UIkit.util.attr(document.getElementById('btn_stop'), 'disabled', true);
+            clearInterval(timerId);
+        };
+    </script>
+{% endblock %}

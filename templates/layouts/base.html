@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru-ru" dir="ltr" class="uk-height-1-1">
+  <head>
+    {% block head %}
+        <title>Daemon Control</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/static/css/uikit.css" />
+        <!--<link rel="stylesheet" href="/static/css/font-awesome.min.css">-->
+        <script src="/static/js/uikit.js"></script>
+        <script src="/static/js/uikit-icons.js"></script>
+    {% endblock %}
+  </head>
+    <body class="uk-height-1-1">    
+        <div class="" style="background-color: #f0f8ff;">
+            <div class="uk-height-viewport">
+                <div class="uk-flex uk-flex-center">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
